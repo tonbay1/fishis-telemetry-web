@@ -1,0 +1,970 @@
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const DATA_FILE = path.join(__dirname, 'telemetry_data.json');
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Initialize data file if it doesn't exist
+if (!fs.existsSync(DATA_FILE)) {
+    fs.writeFileSync(DATA_FILE, JSON.stringify([]));
+}
+
+// Helper function to read data
+function readData() {
+    try {
+        const data = fs.readFileSync(DATA_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        console.error('Error reading data:', err);
+        return [];
+    }
+}
+
+// Helper function to write data
+function writeData(data) {
+    try {
+        fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+        return true;
+    } catch (err) {
+        console.error('Error writing data:', err);
+        return false;
+    }
+}
+
+// POST /telemetry - Receive telemetry data
+app.post('/telemetry', (req, res) => {
+    try {
+        const telemetryData = req.body;
+        console.log('📡 Received telemetry data:', JSON.stringify(telemetryData, null, 2));
+        
+        const allData = readData();
+        
+        // Find existing entry for this account
+        const existingIndex = allData.findIndex(item => item.account === telemetryData.account);
+        
+        // Add timestamp
+        telemetryData.timestamp = new Date().toISOString();
+        telemetryData.online = true;
+        
+        if (existingIndex !== -1) {
+            // Update existing entry
+            allData[existingIndex] = { ...allData[existingIndex], ...telemetryData };
+        } else {
+            // Add new entry
+            allData.push(telemetryData);
+        }
+        
+        // Write back to file
+        if (writeData(allData)) {
+            res.json({ success: true, message: 'Telemetry data received' });
+        } else {
+            res.status(500).json({ success: false, message: 'Failed to save data' });
+        }
+        
+    } catch (err) {
+        console.error('Error processing telemetry:', err);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+// GET /api/data - Get all telemetry data
+app.get('/api/data', (req, res) => {
+    try {
+        const data = readData();
+        res.json(data);
+    } catch (err) {
+        console.error('Error getting data:', err);
+        res.status(500).json({ error: 'Failed to get data' });
+    }
+});
+
+// GET /api/stats - Get summary statistics
+app.get('/api/stats', (req, res) => {
+    try {
+        const data = readData();
+        const stats = {
+            totalAccounts: data.length,
+            onlineAccounts: data.filter(d => d.online).length,
+            totalEnchantStones: data.reduce((sum, d) => sum + (d.enchant || d.enchantStones || 0), 0),
+            lastUpdated: new Date().toISOString()
+        };
+        res.json(stats);
+    } catch (err) {
+        console.error('Error getting stats:', err);
+        res.status(500).json({ error: 'Failed to get stats' });
+    }
+});
+
+// GET /api/latest/:account - Get latest data for specific account
+app.get('/api/latest/:account', (req, res) => {
+    try {
+        const data = readData();
+        const accountData = data.find(d => d.account === req.params.account);
+        
+        if (accountData) {
+            res.json(accountData);
+        } else {
+            res.status(404).json({ error: 'Account not found' });
+        }
+    } catch (err) {
+        console.error('Error getting account data:', err);
+        res.status(500).json({ error: 'Failed to get account data' });
+    }
+});
+
+// GET / - Serve dashboard
+app.get('/', (req, res) => {
+    res.send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FischIs Telemetry Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 240 5.9% 10%;
+            --primary-foreground: 0 0% 98%;
+            --secondary: 240 4.8% 95.9%;
+            --secondary-foreground: 240 5.9% 10%;
+            --muted: 240 4.8% 95.9%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --accent: 240 4.8% 95.9%;
+            --accent-foreground: 240 5.9% 10%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 240 5.9% 90%;
+            --input: 240 5.9% 90%;
+            --ring: 240 5.9% 10%;
+            --radius: 0.75rem;
+        }
+        
+        .dark {
+            --background: 240 10% 3.9%;
+            --foreground: 0 0% 98%;
+            --card: 240 10% 3.9%;
+            --card-foreground: 0 0% 98%;
+            --popover: 240 10% 3.9%;
+            --popover-foreground: 0 0% 98%;
+            --primary: 0 0% 98%;
+            --primary-foreground: 240 5.9% 10%;
+            --secondary: 240 3.7% 15.9%;
+            --secondary-foreground: 0 0% 98%;
+            --muted: 240 3.7% 15.9%;
+            --muted-foreground: 240 5% 64.9%;
+            --accent: 240 3.7% 15.9%;
+            --accent-foreground: 0 0% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 240 3.7% 15.9%;
+            --input: 240 3.7% 15.9%;
+            --ring: 240 4.9% 83.9%;
+        }
+        
+        body {
+            font-family: Geist, sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            line-height: 1.5;
+            transition: all 0.2s ease;
+        }
+        
+        .app { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+        
+        /* Grid layout */
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .gap-4 { gap: 1rem; }
+        .md\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+        .md\:col-span-7 { grid-column: span 7 / span 7; }
+        .md\:col-span-5 { grid-column: span 5 / span 5; }
+        
+        /* Surface and layout */
+        .surface { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); }
+        .rounded-xl { border-radius: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-3 { margin-top: 0.75rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .w-72 { width: 18rem; }
+        .w-full { width: 100%; }
+        .pr-10 { padding-right: 2.5rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .h-4 { height: 1rem; }
+        .w-4 { width: 1rem; }
+        
+        /* Flexbox */
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .flex-wrap { flex-wrap: wrap; }
+        
+        /* Text */
+        .text-sm { font-size: 0.875rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .font-semibold { font-weight: 600; }
+        .text-muted-foreground { color: hsl(var(--muted-foreground)); }
+        .text-green-500 { color: #10b981; }
+        
+        /* Position */
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .right-3 { right: 0.75rem; }
+        .top-1\/2 { top: 50%; }
+        .-translate-y-1\/2 { transform: translateY(-50%); }
+        
+        /* Screen reader only */
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+        
+        /* Cursor */
+        .cursor-pointer { cursor: pointer; }
+        .select-none { user-select: none; }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .title { font-size: 1.875rem; font-weight: 700; }
+        
+        .theme-toggle {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            width: 2.25rem;
+            height: 2.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .theme-toggle:hover { background: var(--border); }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        
+        .stat-label { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 2rem; font-weight: 700; }
+        .stat-online { color: var(--success); }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .search {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.875rem;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .table-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-top: 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        
+        tr:hover { background: var(--border); }
+        
+        .account-cell { font-weight: 600; }
+        .online-status { color: var(--success); }
+        .offline-status { color: var(--danger); }
+        
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .page-info { color: var(--text-muted); font-size: 0.875rem; }
+        
+        .page-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .page-btn {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .page-btn:hover:not(:disabled) { background: var(--border); }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Radio pills */
+        .radio-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        
+        .radio-pill:hover { background: var(--border); }
+        
+        .radio-pill:has(input:checked) {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .radio-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .radio-pill:has(input:checked) .radio-dot {
+            background: currentColor;
+        
+/* Input styling */
+.input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.375rem;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+}
+        
+.input:focus {
+    outline: none;
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+        
+        /* Button styling */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.375rem;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .btn:hover { background: hsl(var(--accent)); }
+        
+        .btn-secondary { background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); }
+        .btn-icon { width: 2rem; height: 2rem; padding: 0; }
+        .ghost-pill { border-radius: 1rem; }
+        
+        /* Table styling */
+        .table-head th {
+            background: hsl(var(--muted) / 0.5);
+            font-weight: 600;
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+        
+        .th-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .th-icon {
+            width: 1rem;
+            height: 1rem;
+            stroke-width: 2;
+        }
+        
+        .w-10 { width: 2.5rem; }
+        
+        /* Checkbox styling */
+        .checkbox-btn {
+            width: 1rem;
+            height: 1rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.25rem;
+            background: hsl(var(--background));
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .checkbox-btn:hover {
+            border-color: hsl(var(--ring));
+        }
+        
+        .checkbox-btn[data-checked="true"] {
+            background: hsl(var(--primary));
+            border-color: hsl(var(--primary));
+        }
+        
+        .checkbox-icon {
+            width: 0.75rem;
+            height: 0.75rem;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+        }
+        
+        /* Table row styling */
+        .table-row:hover { background: hsl(var(--muted) / 0.5); }
+        .row-alt { background: hsl(var(--muted) / 0.3); }
+        .account-cell { font-weight: 600; }
+        
+        .loading { text-align: center; padding: 2rem; color: hsl(var(--muted-foreground)); }
+        .error { text-align: center; padding: 2rem; color: hsl(var(--destructive)); }
+        
+        @media (max-width: 768px) {
+            .app { padding: 1rem; }
+            .controls { flex-direction: column; }
+            .search { min-width: auto; }
+            .stats { grid-template-columns: 1fr; }
+            table { font-size: 0.875rem; }
+            th, td { padding: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <h1 class="title">FischIs Telemetry Dashboard</h1>
+            <button class="theme-toggle" id="themeToggle">
+                <svg id="sunIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                </svg>
+                <svg id="moonIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Main content area -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <!-- Left section: Online/Accounts + Search + Filters -->
+            <div class="md:col-span-7">
+                <div class="surface rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <div class="text-sm text-muted-foreground">Online / Accounts</div>
+                            <div class="text-2xl font-semibold mt-1">
+                                <span class="text-green-500" id="onlineCount">0</span>/<span id="totalCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="relative mb-4">
+                        <input type="text" id="searchInput" placeholder="Search in everything..." class="input w-full pr-10" />
+                        <svg class="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    
+                    <!-- Radio filters -->
+                    <div class="flex items-center gap-3">
+                        <label class="radio-pill cursor-pointer select-none">
+                            <input type="radio" name="s" value="all" checked class="sr-only" />
+                            <span class="radio-dot"></span>
+                            <span>All (<span id="allCount">0</span>)</span>
+                        </label>
+                        <label class="radio-pill cursor-pointer select-none">
+                            <input type="radio" name="s" value="online" class="sr-only" />
+                            <span class="radio-dot"></span>
+                            <span>Online (<span id="onlineFilterCount">0</span>)</span>
+                        </label>
+                        <label class="radio-pill cursor-pointer select-none">
+                            <input type="radio" name="s" value="offline" class="sr-only" />
+                            <span class="radio-dot"></span>
+                            <span>Offline (<span id="offlineCount">0</span>)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right section: Total Enchant + Action buttons -->
+            <div class="md:col-span-5">
+                <div class="surface rounded-xl p-4">
+                    <div class="text-sm text-muted-foreground">Total Enchant</div>
+                    <div class="text-2xl font-semibold mt-1" id="totalEnchant">0</div>
+                    
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <button class="btn btn-secondary ghost-pill">
+                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Google Sheets
+                        </button>
+                        <button class="btn btn-secondary ghost-pill">
+                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                            </svg>
+                            Script
+                        </button>
+                        <button class="btn btn-secondary ghost-pill">
+                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                            </svg>
+                            Cookies
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Items count and table -->
+        <div class="mt-4">
+            <div class="text-sm text-muted-foreground mb-2"><span id="itemCount">0</span> items</div>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr class="table-head">
+                        <th class="w-10">
+                            <!-- select all -->
+                            <button type="button" aria-label="Select all" class="checkbox-btn" id="selectAllBtn" data-checked="false">
+                            </button>
+                        </th>
+                        <th>Account</th>
+                        <th>Level</th>
+                        <th>
+                            <span class="th-wrap">
+                                <svg class="th-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                                Enchant
+                            </span>
+                        </th>
+                        <th>
+                            <span class="th-wrap">
+                                <svg class="th-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                </svg>
+                                Coins
+                            </span>
+                        </th>
+                        <th>
+                            <span class="th-wrap">
+                                <svg class="th-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+                                </svg>
+                                Rod
+                            </span>
+                        </th>
+                        <th>
+                            <span class="th-wrap">
+                                <svg class="th-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 5l7 7-7 7" />
+                                </svg>
+                                Items
+                            </span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="7" class="loading">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            <div class="flex items-center justify-end gap-2 p-3">
+                <div class="text-sm text-muted-foreground mr-2"><span id="currentPageDisplay">1</span> of <span id="pageCount">1</span> pages</div>
+                <button class="btn btn-secondary btn-icon ghost-pill" id="firstPage" disabled>
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m11 17-5-5 5-5m6 10-5-5 5-5" />
+                    </svg>
+                </button>
+                <button class="btn btn-secondary btn-icon ghost-pill" id="prevPage" disabled>
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6" />
+                    </svg>
+                </button>
+                <button class="btn btn-secondary btn-icon ghost-pill" id="nextPage" disabled>
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6" />
+                    </svg>
+                </button>
+                <button class="btn btn-secondary btn-icon ghost-pill" id="lastPage" disabled>
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m13 17 5-5-5-5M7 17l5-5-5-5" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global state
+        let allData = [];
+        let filteredData = [];
+        let selectedItems = new Set();
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        
+        // Theme management
+        function initTheme() {
+            const saved = localStorage.getItem('theme');
+            const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('sunIcon').style.display = 'none';
+                document.getElementById('moonIcon').style.display = 'block';
+            }
+        }
+        
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            document.getElementById('sunIcon').style.display = isDark ? 'none' : 'block';
+            document.getElementById('moonIcon').style.display = isDark ? 'block' : 'none';
+        }
+        
+        // Data fetching
+        async function fetchData() {
+            try {
+                const [dataRes, statsRes] = await Promise.all([
+                    fetch('/api/data'),
+                    fetch('/api/stats')
+                ]);
+                
+                allData = await dataRes.json();
+                const stats = await statsRes.json();
+                
+                updateStats(stats);
+                filterData();
+                
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                document.getElementById('tableBody').innerHTML = 
+                    '<tr><td colspan="7" class="error">Error loading data</td></tr>';
+            }
+        }
+        
+        // Update statistics
+        function updateStats(stats) {
+            document.getElementById('onlineCount').textContent = stats.onlineAccounts;
+            document.getElementById('totalCount').textContent = stats.totalAccounts;
+            document.getElementById('totalEnchant').textContent = stats.totalEnchantStones;
+            document.getElementById('allCount').textContent = stats.totalAccounts;
+            document.getElementById('onlineFilterCount').textContent = stats.onlineAccounts;
+            document.getElementById('offlineCount').textContent = stats.totalAccounts - stats.onlineAccounts;
+        }
+        
+        // Filter data
+        function filterData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.querySelector('input[name="s"]:checked').value;
+            
+            filteredData = allData.filter(row => {
+                // Search filter - match account and rod like React component
+                const searchMatch = !searchTerm || 
+                    (row.account + ' ' + (row.rod || '')).toLowerCase().includes(searchTerm);
+                
+                // Status filter
+                const statusMatch = statusFilter === 'all' || 
+                    (statusFilter === 'online' && row.online) ||
+                    (statusFilter === 'offline' && !row.online);
+                
+                return searchMatch && statusMatch;
+            });
+            
+            currentPage = 1;
+            updateTable();
+            updatePagination();
+            document.getElementById('itemCount').textContent = filteredData.length + ' items';
+        }
+        
+        // Toggle row selection
+        function toggleRowSelection(account) {
+            if (selectedItems.has(account)) {
+                selectedItems.delete(account);
+            } else {
+                selectedItems.add(account);
+            }
+            updateTable();
+            updateSelectAllButton();
+        }
+        
+        // Toggle select all
+        function toggleSelectAll() {
+            const pageSize = 20;
+            const start = (currentPage - 1) * pageSize;
+            const pageRows = filteredData.slice(start, start + pageSize);
+            const allSelected = pageRows.length > 0 && pageRows.every(row => selectedItems.has(row.account));
+            
+            if (allSelected) {
+                // Deselect all items on current page
+                pageRows.forEach(row => selectedItems.delete(row.account));
+            } else {
+                // Select all items on current page
+                pageRows.forEach(row => selectedItems.add(row.account));
+            }
+            
+            updateTable();
+            updateSelectAllButton();
+        }
+        
+        // Update select all button state
+        function updateSelectAllButton() {
+            const btn = document.getElementById('selectAllBtn');
+            const pageSize = 20;
+            const start = (currentPage - 1) * pageSize;
+            const pageRows = filteredData.slice(start, start + pageSize);
+            const allSelected = pageRows.length > 0 && pageRows.every(row => selectedItems.has(row.account));
+            const someSelected = pageRows.some(row => selectedItems.has(row.account)) && !allSelected;
+            
+            btn.setAttribute('data-checked', allSelected.toString());
+            
+            if (allSelected) {
+                btn.innerHTML = '<svg viewBox="0 0 24 24" class="checkbox-icon"><path d="M4 12l5 5 11-11"/></svg>';
+            } else if (someSelected) {
+                btn.innerHTML = '<svg viewBox="0 0 24 24" class="checkbox-icon"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+            } else {
+                btn.innerHTML = '';
+            }
+        }
+        
+        // Update table
+        function updateTable() {
+            const tbody = document.getElementById('tableBody');
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">No results found</td></tr>';
+                return;
+            }
+            
+            const start = (currentPage - 1) * itemsPerPage;
+            const pageData = filteredData.slice(start, start + itemsPerPage);
+            
+            tbody.innerHTML = pageData.map((row, index) => {
+                const isSelected = selectedItems.has(row.account);
+                const nf = new Intl.NumberFormat();
+                
+                return \`
+                    <tr class="table-row row-hover\${index % 2 ? ' row-alt' : ''}">
+                        <td class="w-10">
+                            <button type="button" aria-label="Select row" class="checkbox-btn" data-checked="\${isSelected}" onclick="toggleRowSelection('\${row.account}')">
+                                \${isSelected ? '<svg viewBox="0 0 24 24" class="checkbox-icon"><path d="M4 12l5 5 11-11"/></svg>' : ''}
+                            </button>
+                        </td>
+                        <td class="account-cell">\${row.account || 'Unknown'}</td>
+                        <td class="cell">\${row.level || 0}</td>
+                        <td class="cell">\${row.enchant || row.enchantStones || 0}</td>
+                        <td class="cell">\${nf.format(row.coins || 0)}</td>
+                        <td class="cell">\${row.rod || 'N/A'}</td>
+                        <td class="cell">\${row.items || Object.keys(row.materials || {}).length || 0}</td>
+                    </tr>
+                \`;
+            }).join('');
+        }
+        
+        // Update pagination display and controls
+        function updatePagination() {
+            const pageSize = 20;
+            const pageCount = Math.max(1, Math.ceil(filteredData.length / pageSize));
+            
+            // Update current page and page count display
+            document.getElementById('currentPageDisplay').textContent = currentPage;
+            document.getElementById('pageCount').textContent = pageCount;
+            
+            // Update button states
+            const firstBtn = document.getElementById('firstPage');
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+            const lastBtn = document.getElementById('lastPage');
+            
+            firstBtn.disabled = currentPage === 1;
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === pageCount;
+            lastBtn.disabled = currentPage === pageCount;
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+            fetchData();
+            
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Search
+            document.getElementById('searchInput').addEventListener('input', filterData);
+            
+            // Filter radio buttons
+            document.querySelectorAll('input[name="s"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    currentPage = 1; // Reset to page 1 when filter changes
+                    filterData();
+                });
+            });
+            
+            // Pagination event listeners
+            document.getElementById('firstPage').addEventListener('click', () => {
+                currentPage = 1;
+                updateTable();
+                updatePagination();
+                updateSelectAllButton();
+            });
+            
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateTable();
+                    updatePagination();
+                    updateSelectAllButton();
+                }
+            });
+            
+            document.getElementById('nextPage').addEventListener('click', () => {
+                const pageSize = 20;
+                const pageCount = Math.max(1, Math.ceil(filteredData.length / pageSize));
+                if (currentPage < pageCount) {
+                    currentPage++;
+                    updateTable();
+                    updatePagination();
+                    updateSelectAllButton();
+                }
+            });
+            
+            document.getElementById('lastPage').addEventListener('click', () => {
+                const pageSize = 20;
+                const pageCount = Math.max(1, Math.ceil(filteredData.length / pageSize));
+                currentPage = pageCount;
+                updateTable();
+                updatePagination();
+                updateSelectAllButton();
+            });
+            
+            // Select all button
+            document.getElementById('selectAllBtn').addEventListener('click', toggleSelectAll);
+            
+            // Auto-refresh every 10 seconds
+            setInterval(fetchData, 10000);
+        });
+        
+        // Make functions global for onclick handlers
+        window.toggleRowSelection = toggleRowSelection;
+        window.toggleSelectAll = toggleSelectAll;
+    </script>
+</body>
+</html>
+    `);
+});
+
+// Start server
+app.listen(PORT, () => {
+    console.log('🚀 FischIs Telemetry Server running on http://localhost:' + PORT);
+    console.log('📊 Dashboard: http://localhost:' + PORT);
+    console.log('📡 Telemetry endpoint: http://localhost:' + PORT + '/telemetry');
+    console.log('📈 API endpoints:');
+    console.log('   - GET /api/data - All telemetry data');
+    console.log('   - GET /api/stats - Summary statistics');
+    console.log('   - GET /api/latest/:account - Latest data for account');
+    console.log('💾 Data file: ' + DATA_FILE);
+});
+
+module.exports = app;

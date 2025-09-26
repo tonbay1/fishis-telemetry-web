@@ -1,0 +1,1032 @@
+[
+  {
+    "account": "tonbay2542",
+    "playerName": "tonbay2542",
+    "money": 117360,
+    "coins": 117360,
+    "level": 281,
+    "equippedRod": "Ghostfinn Rod",
+    "location": "Fisherman Island",
+    "rods": [
+      "Ares Rod",
+      "Astral Rod",
+      "Carbon Rod",
+      "Chrome Rod",
+      "Demascus Rod",
+      "Ghostfinn Rod",
+      "Gold Rod",
+      "Grass Rod",
+      "Ice Rod",
+      "Lava Rod",
+      "Luck Rod",
+      "Lucky Rod",
+      "Magma Rod",
+      "Midnight Rod",
+      "Starter Rod",
+      "Steampunk Rod"
+    ],
+    "baits": [
+      "Bag-O-Gold",
+      "Chroma Bait",
+      "Corrupt Bait",
+      "Dark Matter Bait",
+      "Giant Squid",
+      "Gold Bait",
+      "Hyper Bait",
+      "Luck Bait",
+      "Midnight Bait",
+      "Nature Bait",
+      "Starter Bait",
+      "Topwater Bait"
+    ],
+    "materials": {
+      "Enchant Stone": 54
+    },
+    "rodsDetailed": [
+      {
+        "udid": "1",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Starter Rod"
+      },
+      {
+        "udid": "79",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Luck Rod"
+      },
+      {
+        "udid": "2",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Lava Rod"
+      },
+      {
+        "udid": "4",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Lucky Rod"
+      },
+      {
+        "udid": "76",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Carbon Rod"
+      },
+      {
+        "udid": "85",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Grass Rod"
+      },
+      {
+        "udid": "6",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Steampunk Rod"
+      },
+      {
+        "udid": "7",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Chrome Rod"
+      },
+      {
+        "udid": "80",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Midnight Rod"
+      },
+      {
+        "udid": "78",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Ice Rod"
+      },
+      {
+        "udid": "77",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Demascus Rod"
+      },
+      {
+        "udid": "5",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Astral Rod"
+      },
+      {
+        "udid": "169",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Ghostfinn Rod"
+      },
+      {
+        "udid": "126",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Ares Rod"
+      },
+      {
+        "udid": "2",
+        "src": "Data:Inventory>Boats:arrobj",
+        "name": "Lava Rod"
+      },
+      {
+        "udid": "1",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Starter Rod"
+      },
+      {
+        "udid": "3",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Magma Rod"
+      },
+      {
+        "udid": "2",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Lava Rod"
+      },
+      {
+        "udid": "6",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Steampunk Rod"
+      },
+      {
+        "udid": "8",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Gold Rod"
+      },
+      {
+        "udid": "4",
+        "src": "Data:Inventory>Potions:arrobj",
+        "name": "Lucky Rod"
+      },
+      {
+        "udid": "1",
+        "src": "Data:Inventory>Potions:arrobj",
+        "name": "Starter Rod"
+      }
+    ],
+    "online": true,
+    "timestamp": "2025-09-25T19:52:43.653Z",
+    "userId": 2422276039,
+    "time": "2025-09-26 02:52:23",
+    "baitsDetailed": [
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "156",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Giant Squid",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "1",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Starter Bait",
+        "count": 1
+      },
+      {
+        "id": "2",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Luck Bait",
+        "count": 1
+      },
+      {
+        "id": "4",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Gold Bait",
+        "count": 1
+      },
+      {
+        "id": "6",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Chroma Bait",
+        "count": 1
+      },
+      {
+        "id": "7",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Bag-O-Gold",
+        "count": 1
+      },
+      {
+        "id": "5",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Hyper Bait",
+        "count": 1
+      },
+      {
+        "id": "2",
+        "src": "Data:Inventory>Boats:arrobj",
+        "name": "Luck Bait",
+        "count": 1
+      },
+      {
+        "id": "1",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Starter Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "3",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Midnight Bait",
+        "count": 1
+      },
+      {
+        "id": "17",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Nature Bait",
+        "count": 1
+      },
+      {
+        "id": "2",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Luck Bait",
+        "count": 1
+      },
+      {
+        "id": "6",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Chroma Bait",
+        "count": 1
+      },
+      {
+        "id": "8",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Dark Matter Bait",
+        "count": 1
+      },
+      {
+        "id": "15",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Corrupt Bait",
+        "count": 1
+      },
+      {
+        "id": "4",
+        "src": "Data:Inventory>Potions:arrobj",
+        "name": "Gold Bait",
+        "count": 1
+      },
+      {
+        "id": "1",
+        "src": "Data:Inventory>Potions:arrobj",
+        "name": "Starter Bait",
+        "count": 1
+      }
+    ],
+    "displayName": "tonbay2542",
+    "lastUpdated": "2025-09-25T19:52:43.653Z",
+    "materialsDetailed": [
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Replion:Data.Inventory.Items",
+        "name": "Enchant Stone",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "userId": 9442389528,
+    "coins": 373,
+    "time": "2025-09-25 23:57:24",
+    "level": 20,
+    "baits": [
+      "Luck Bait",
+      "Starter Bait",
+      "Topwater Bait"
+    ],
+    "equippedRod": "",
+    "playerName": "BoreDogDisgusted90",
+    "rods": [
+      "Carbon Rod",
+      "Lava Rod",
+      "Luck Rod",
+      "Starter Rod"
+    ],
+    "displayName": "Hurteau",
+    "rodsDetailed": [
+      {
+        "udid": "1",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Starter Rod"
+      },
+      {
+        "udid": "79",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Luck Rod"
+      },
+      {
+        "udid": "76",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Carbon Rod"
+      },
+      {
+        "udid": "1",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Starter Rod"
+      },
+      {
+        "udid": "2",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Lava Rod"
+      }
+    ],
+    "online": true,
+    "materials": {
+      "Barracuda Fish": 4
+    },
+    "lastUpdated": "2025-09-25T16:57:24.431Z",
+    "location": "Fisherman Island",
+    "timestamp": "2025-09-25T16:57:24.431Z",
+    "money": 373,
+    "account": "BoreDogDisgusted90",
+    "baitsDetailed": [
+      {
+        "id": "1",
+        "src": "Data:Inventory>Fishing Rods:arrobj",
+        "name": "Starter Bait",
+        "count": 1
+      },
+      {
+        "id": "1",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Starter Bait",
+        "count": 1
+      },
+      {
+        "id": "10",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Topwater Bait",
+        "count": 1
+      },
+      {
+        "id": "2",
+        "src": "Data:Inventory>Baits:arrobj",
+        "name": "Luck Bait",
+        "count": 1
+      }
+    ],
+    "materialsDetailed": [
+      {
+        "id": "194",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Barracuda Fish",
+        "count": 1
+      },
+      {
+        "id": "194",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Barracuda Fish",
+        "count": 1
+      },
+      {
+        "id": "194",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Barracuda Fish",
+        "count": 1
+      },
+      {
+        "id": "194",
+        "src": "Data:Inventory>Items:arrobj",
+        "name": "Barracuda Fish",
+        "count": 1
+      }
+    ]
+  }
+]
