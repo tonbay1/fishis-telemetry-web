@@ -65,7 +65,7 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
       const apiParam = params.get('api');
       if (apiParam) return apiParam;
     } catch {}
-    return (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://reviewing-knee-encouraging-health.trycloudflare.com';
+    return (import.meta as any)?.env?.VITE_API_BASE_URL || ' https://docs-music-integer-variable.trycloudflare.com';
   };
   const API_BASE: string = getApiBase();
   const [query, setQuery] = React.useState("");
