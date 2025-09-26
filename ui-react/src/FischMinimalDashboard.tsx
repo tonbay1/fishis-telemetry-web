@@ -94,27 +94,7 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
   const [userDataError, setUserDataError] = React.useState<string>('');
   const autoLoadAttempted = React.useRef(false);
 
-  // Monitor URL changes for key parameter
-  React.useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const k = (params.get('key') || '').trim();
-      if (k && k !== userKey) {
-        // Key changed from URL, update state only
-        setUserKey(k);
-        setRememberKey(true);
-        try { localStorage.setItem(LS_USER_KEY, k); } catch {}
-      } else if (!autoLoadAttempted.current && k) {
-        // First load from URL
-        autoLoadAttempted.current = true;
-        setUserKey(k);
-        setRememberKey(true);
-        try { localStorage.setItem(LS_USER_KEY, k); } catch {}
-      }
-    } catch {}
-  }, []);
-
-  // Load data when userKey changes (separate effect to prevent flickering)
+  // Auto-load user data if ?key= is present in URL (single effect)
   React.useEffect(() => {
     const loadDataForKey = async (k: string) => {
       if (!k) {
@@ -147,10 +127,21 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
       }
     };
 
-    if (userKey) {
-      loadDataForKey(userKey);
-    }
-  }, [userKey, API_BASE]);
+    // Only run once on mount
+    if (autoLoadAttempted.current) return;
+    autoLoadAttempted.current = true;
+    
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const k = (params.get('key') || '').trim();
+      if (k) {
+        setUserKey(k);
+        setRememberKey(true);
+        try { localStorage.setItem(LS_USER_KEY, k); } catch {}
+        loadDataForKey(k);
+      }
+    } catch {}
+  }, [API_BASE]);
 
   // --- THEME helpers ---------------------------------------------------------
   const clearInlineThemeVars = () => {
