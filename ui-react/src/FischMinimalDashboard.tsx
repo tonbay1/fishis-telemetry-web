@@ -63,7 +63,7 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
       const apiParam = params.get('api');
       if (apiParam) return apiParam;
     } catch {}
-    return (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://extensions-sensitive-shake-pros.trycloudflare.com';
+    return (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://involvement-friday-bangkok-jewelry.trycloudflare.com';
   };
   const API_BASE: string = getApiBase();
   const [query, setQuery] = React.useState("");
