@@ -94,39 +94,40 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
   const [userDataError, setUserDataError] = React.useState<string>('');
   const autoLoadAttempted = React.useRef(false);
 
-  // Auto-load user data if ?key= is present in URL (single effect)
-  React.useEffect(() => {
-    const loadDataForKey = async (k: string) => {
-      if (!k) {
+  // Function to load data for a specific key
+  const loadDataForKey = async (k: string) => {
+    if (!k) {
+      setData([]);
+      return;
+    }
+    try {
+      setLoadingUserData(true);
+      setUserDataError('');
+      const res = await fetch(`${API_BASE}/api/data?key=${encodeURIComponent(k)}`);
+      if (!res.ok) {
+        setUserDataError(`Server error: ${res.status}`);
         setData([]);
         return;
       }
-      try {
-        setLoadingUserData(true);
-        setUserDataError('');
-        const res = await fetch(`${API_BASE}/api/data?key=${encodeURIComponent(k)}`);
-        if (!res.ok) {
-          setUserDataError(`Server error: ${res.status}`);
-          setData([]);
-          return;
-        }
-        const userData = await res.json();
-        if (Array.isArray(userData) && userData.length > 0) {
-          setData(userData as DataRow[]);
-          setUsingCache(false);
-          setCacheTime(Date.now());
-        } else {
-          setUserDataError('No data found for this key. Make sure you have run the telemetry script at least once.');
-          setData([]);
-        }
-      } catch (e) {
-        setUserDataError('Network error while loading data. Please check your connection and try again.');
+      const userData = await res.json();
+      if (Array.isArray(userData) && userData.length > 0) {
+        setData(userData as DataRow[]);
+        setUsingCache(false);
+        setCacheTime(Date.now());
+      } else {
+        setUserDataError('No data found for this key. Make sure you have run the telemetry script at least once.');
         setData([]);
-      } finally {
-        setLoadingUserData(false);
       }
-    };
+    } catch (e) {
+      setUserDataError('Network error while loading data. Please check your connection and try again.');
+      setData([]);
+    } finally {
+      setLoadingUserData(false);
+    }
+  };
 
+  // Auto-load user data if ?key= is present in URL (single effect)
+  React.useEffect(() => {
     // Only run once on mount
     if (autoLoadAttempted.current) return;
     autoLoadAttempted.current = true;
@@ -138,10 +139,21 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
         setUserKey(k);
         setRememberKey(true);
         try { localStorage.setItem(LS_USER_KEY, k); } catch {}
+        // Load data immediately
         loadDataForKey(k);
+      } else {
+        // Try to load from localStorage if no URL key
+        try {
+          const savedKey = localStorage.getItem(LS_USER_KEY);
+          if (savedKey) {
+            setUserKey(savedKey);
+            setRememberKey(true);
+            loadDataForKey(savedKey);
+          }
+        } catch {}
       }
     } catch {}
-  }, [API_BASE]);
+  }, []); // Remove API_BASE dependency to prevent re-runs
 
   // --- THEME helpers ---------------------------------------------------------
   const clearInlineThemeVars = () => {
