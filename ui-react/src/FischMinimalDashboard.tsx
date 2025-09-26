@@ -419,8 +419,10 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
       });
       
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ message: 'Unknown error' }));
-        alert(`Failed to export to Google Sheets: ${errorData.message}`);
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        const errorMessage = errorData.error || errorData.message || 'Unknown error';
+        alert(`Failed to export to Google Sheets: ${errorMessage}`);
+        console.error('Export API Error:', errorData);
         return;
       }
       
