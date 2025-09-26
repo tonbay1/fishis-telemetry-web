@@ -364,15 +364,44 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
     });
   };
 
-  // Prime from cache on first paint (instant data if server is down)
+  // SECURITY: Load cache only for specific user key (prevent data leakage)
   React.useEffect(() => {
+    // Only load cache if we have a userKey (user-specific data)
+    if (!userKey) {
+      console.log('No userKey - skipping cache load for security');
+      return;
+    }
+    
     try {
-      const raw = localStorage.getItem(LS_KEY);
+      // Try to load user-specific cache first
+      const userCacheKey = `${LS_KEY}:${userKey}`;
+      let raw = localStorage.getItem(userCacheKey);
+      
+      // Fallback to general cache only if it matches the user key
+      if (!raw) {
+        const generalRaw = localStorage.getItem(LS_KEY);
+        if (generalRaw) {
+          const generalObj = JSON.parse(generalRaw);
+          // Only use general cache if it's for this specific user
+          if (generalObj?.key === userKey) {
+            raw = generalRaw;
+          }
+        }
+      }
+      
       if (raw) {
         const obj = JSON.parse(raw);
         const arr = Array.isArray(obj?.data) ? obj.data : [];
-        if (arr.length) {
-          const mapped: DataRow[] = (arr || []).map((it: any) => ({
+        
+        // Double-check: filter data to ensure it belongs to this user
+        const userSpecificData = arr.filter((it: any) => {
+          const account = (it.account || it.playerName || '').toLowerCase();
+          const keyAccount = userKey.toLowerCase();
+          return account.includes(keyAccount) || it.key === userKey;
+        });
+        
+        if (userSpecificData.length) {
+          const mapped: DataRow[] = userSpecificData.map((it: any) => ({
             account: it.account || it.playerName || "",
             level: it.level ?? 0,
             enchant: 0,
@@ -395,17 +424,23 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
           if (!selectedAccount && mapped.length) setSelectedAccount(mapped[0].account);
           setUsingCache(true);
           if (typeof obj?.ts === 'number') setCacheTime(obj.ts);
+          console.log(`Loaded ${mapped.length} cached items for user: ${userKey}`);
         }
       }
     } catch {}
-    // no deps: run once
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userKey]); // Depend on userKey to reload cache when user changes
 
-  // Fetch all data from API and enrich local rows
+  // Fetch data from API (ADMIN ONLY - requires authKey for security)
   const fetchData = React.useCallback(async () => {
+    // SECURITY: Only allow data fetching with valid authKey to prevent unauthorized access
+    if (!authKey) {
+      console.warn('fetchData: No authKey provided - preventing unauthorized data access');
+      return;
+    }
+    
     try {
-      const url = authKey ? `${API_BASE}/api/data?key=${encodeURIComponent(authKey)}` : `${API_BASE}/api/data`;
+      const url = `${API_BASE}/api/data?key=${encodeURIComponent(authKey)}`;
       const res = await fetch(url);
       if (!res.ok) return;
       const arr = await res.json();
@@ -431,22 +466,18 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
       }));
       setData(mapped);
       if (!selectedAccount && mapped.length) setSelectedAccount(mapped[0].account);
-      // cache to localStorage
+      // cache to localStorage with key-specific storage
       try {
-        const pack = { ts: Date.now(), data: arr };
-        localStorage.setItem(LS_KEY, JSON.stringify(pack));
+        const pack = { ts: Date.now(), data: arr, key: authKey };
+        localStorage.setItem(`${LS_KEY}:${authKey}`, JSON.stringify(pack));
         setUsingCache(false);
         setCacheTime(pack.ts);
       } catch {}
     } catch {}
   }, [selectedAccount, API_BASE, authKey]);
 
-  // Initial fetch and auto-refresh every 5 seconds
-  React.useEffect(() => {
-    fetchData(); // Initial fetch (will override cache if server is up)
-    const interval = setInterval(fetchData, 5000); // Auto-refresh every 5 seconds
-    return () => clearInterval(interval); // Cleanup
-  }, [fetchData]);
+  // Removed conflicting auto-refresh - now handled by loadDataForKey for user-specific data
+  // fetchData is only used for admin/general data viewing
 
   // Filter & derive -----------------------------------------------------------
   const filtered = data.filter((r) => {
