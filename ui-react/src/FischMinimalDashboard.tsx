@@ -102,6 +102,11 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
   const [autoRefresh, setAutoRefresh] = React.useState(true);
   const [lastRefresh, setLastRefresh] = React.useState<number>(0);
   const refreshTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  
+  // Delete functionality
+  const [selectedForDelete, setSelectedForDelete] = React.useState<string[]>([]);
+  const [deleting, setDeleting] = React.useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
 
   // Smart data merging to prevent flickering
   const mergeDataSmart = (newData: DataRow[], currentData: DataRow[]) => {
@@ -318,6 +323,78 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
     setUserDataError('');
     localStorage.removeItem(LS_USER_KEY);
     setRememberKey(false);
+  };
+
+  // Delete functionality
+  const deleteSelectedAccounts = async () => {
+    if (!userKey.trim() || selectedForDelete.length === 0) return;
+    
+    try {
+      setDeleting(true);
+      
+      const res = await fetch(`${API_BASE}/api/data`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          key: userKey.trim(),
+          accounts: selectedForDelete
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Unknown error' }));
+        alert(`Failed to delete accounts: ${errorData.message}`);
+        return;
+      }
+      
+      const result = await res.json();
+      
+      // Remove deleted accounts from current data
+      const updatedData = data.filter(item => {
+        const account = item.account || item.playerName || '';
+        return !selectedForDelete.includes(account);
+      });
+      
+      setData(updatedData);
+      setSelectedForDelete([]);
+      setDeleteConfirmOpen(false);
+      
+      // Update cache
+      const cacheKey = `${LS_KEY}:${userKey.trim()}`;
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify({
+          data: updatedData,
+          timestamp: Date.now()
+        }));
+      } catch {}
+      
+      alert(`Successfully deleted ${result.deletedCount} account(s). ${result.remainingCount} accounts remaining.`);
+      
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Network error while deleting accounts.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+  
+  const toggleAccountForDelete = (account: string) => {
+    setSelectedForDelete(prev => 
+      prev.includes(account) 
+        ? prev.filter(acc => acc !== account)
+        : [...prev, account]
+    );
+  };
+  
+  const selectAllForDelete = () => {
+    const allAccounts = data.map(item => item.account || item.playerName || '').filter(Boolean);
+    setSelectedForDelete(allAccounts);
+  };
+  
+  const clearDeleteSelection = () => {
+    setSelectedForDelete([]);
   };
 
   const applyTheme = (next: "light" | "dark") => {
@@ -683,6 +760,53 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
               Refresh
             </button>
           )}
+          
+          {/* Delete Controls */}
+          {userKey && data.length > 0 && (
+            <div className="flex items-center gap-1 ml-2 pl-2 border-l">
+              {selectedForDelete.length > 0 && (
+                <>
+                  <span className="text-xs text-muted-foreground">
+                    {selectedForDelete.length} selected
+                  </span>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 transition-colors"
+                    onClick={() => setDeleteConfirmOpen(true)}
+                    disabled={deleting}
+                    title="Delete selected accounts"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete ({selectedForDelete.length})
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 transition-colors"
+                    onClick={clearDeleteSelection}
+                    title="Clear selection"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Clear
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900 dark:text-orange-300 transition-colors"
+                onClick={selectAllForDelete}
+                title="Select all accounts for deletion"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Select All
+              </button>
+            </div>
+          )}
         </div>
         
         {usingCache && (
@@ -769,7 +893,6 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
               <TableHeader>
                 <TableRow className="table-head">
                   <TableHead className="w-10">
-                    {/* select all */}
                     <button
                       type="button"
                       aria-label="Select all"
@@ -784,6 +907,11 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
                       ) : null}
                     </button>
                   </TableHead>
+                  {userKey && (
+                    <TableHead className="w-10">
+                      <span className="text-xs text-red-600 font-medium">Delete</span>
+                    </TableHead>
+                  )}
                   <TableHead>Account</TableHead>
                   <TableHead>
                     <span className="th-wrap"><CoinsIcon className="th-icon"/> Money</span>
@@ -802,7 +930,7 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
               <TableBody>
                 {pageRows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-10 text-sm text-muted-foreground">No results.</TableCell>
+                    <TableCell colSpan={userKey ? 11 : 10} className="text-center py-10 text-sm text-muted-foreground">No results.</TableCell>
                   </TableRow>
                 ) : (
                   pageRows.map((r, i) => (
@@ -813,13 +941,36 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
                           aria-label="Select row"
                           className="checkbox-btn"
                           data-checked={selected.includes(r.account)}
-                          onClick={() => toggleRow(r.account)}
+                          onClick={(e) => { e.stopPropagation(); toggleRow(r.account); }}
                         >
                           {selected.includes(r.account) ? (
                             <svg viewBox="0 0 24 24" className="checkbox-icon"><path d="M4 12l5 5 11-11"/></svg>
                           ) : null}
                         </button>
                       </TableCell>
+                      {userKey && (
+                        <TableCell className="w-10">
+                          <button
+                            type="button"
+                            aria-label="Mark for deletion"
+                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                              selectedForDelete.includes(r.account || r.playerName || '')
+                                ? 'bg-red-500 border-red-500 text-white'
+                                : 'border-red-300 hover:border-red-500 hover:bg-red-50 dark:border-red-600 dark:hover:bg-red-900'
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleAccountForDelete(r.account || r.playerName || '');
+                            }}
+                          >
+                            {selectedForDelete.includes(r.account || r.playerName || '') && (
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                        </TableCell>
+                      )}
                       <TableCell className="account-cell">{r.account}</TableCell>
                       <TableCell className="cell">{nf.format((r as any).coins ?? (r as any).money ?? 0)}</TableCell>
                       <TableCell className="cell">{r.level ?? 0}</TableCell>
@@ -932,6 +1083,76 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
               )}
               <div className="text-xs text-muted-foreground">
                 Enter the key you received when running the telemetry script. This will load your personal data from the API.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background border rounded-lg shadow-lg max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Delete Accounts</h3>
+                  <p className="text-sm text-muted-foreground">This action cannot be undone</p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-sm text-foreground mb-3">
+                  Are you sure you want to delete the following {selectedForDelete.length} account(s)?
+                </p>
+                <div className="max-h-32 overflow-y-auto bg-muted rounded p-3">
+                  {selectedForDelete.map((account, index) => (
+                    <div key={account} className="text-sm font-mono text-foreground">
+                      {index + 1}. {account}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-3">
+                  ⚠️ This will permanently remove all telemetry data for these accounts from your key's data file.
+                </p>
+              </div>
+              
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 text-sm"
+                  onClick={() => setDeleteConfirmOpen(false)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-md bg-red-600 text-white hover:bg-red-700 h-9 px-4 text-sm"
+                  onClick={deleteSelectedAccounts}
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <>
+                      <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete {selectedForDelete.length} Account{selectedForDelete.length > 1 ? 's' : ''}
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
