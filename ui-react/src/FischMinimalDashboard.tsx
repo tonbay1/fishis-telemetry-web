@@ -284,25 +284,7 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
     }
   }, []);
   
-  // Auto-load user data if key is saved
-  React.useEffect(() => {
-    const savedKey = localStorage.getItem(LS_USER_KEY);
-    if (savedKey && savedKey.trim()) {
-      setUserKey(savedKey.trim());
-      setRememberKey(true);
-    }
-  }, []);
-  
-  // Auto-load data when userKey is set from localStorage
-  React.useEffect(() => {
-    if (userKey && userKey.trim() && rememberKey && !loadingUserData && !autoLoadAttempted.current) {
-      autoLoadAttempted.current = true;
-      const timer = setTimeout(() => {
-        loadUserData();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [userKey, rememberKey, loadingUserData]);
+  // Removed duplicate useEffect hooks - now handled in single useEffect above
 
   const toggleTheme = () => {
     setDark((d) => {
