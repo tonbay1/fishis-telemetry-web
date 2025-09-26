@@ -52,7 +52,13 @@ type PlayerDetail = {
 };
 
 // --- Component ---------------------------------------------------------------
-type DataRow = Row & Partial<PlayerDetail> & { playerName?: string; materials?: Record<string, number>; rodsDetailed?: Array<{name:string; udid:string}> };
+type DataRow = Row & Partial<PlayerDetail> & { 
+  playerName?: string; 
+  materials?: Record<string, number>; 
+  rodsDetailed?: Array<{name:string; udid:string}>;
+  lastUpdated?: string;
+  timestamp?: string;
+};
 
 export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[] }) {
   // API base resolves from environment (set VITE_API_BASE_URL in Vercel)
@@ -93,38 +99,102 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
   const [loadingUserData, setLoadingUserData] = React.useState(false);
   const [userDataError, setUserDataError] = React.useState<string>('');
   const autoLoadAttempted = React.useRef(false);
+  const [autoRefresh, setAutoRefresh] = React.useState(true);
+  const [lastRefresh, setLastRefresh] = React.useState<number>(0);
+  const refreshTimerRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Function to load data for a specific key
-  const loadDataForKey = async (k: string) => {
+  // Smart data merging to prevent flickering
+  const mergeDataSmart = (newData: DataRow[], currentData: DataRow[]) => {
+    if (!Array.isArray(newData) || newData.length === 0) return currentData;
+    if (!Array.isArray(currentData) || currentData.length === 0) return newData;
+    
+    // Create a map of current data by account for fast lookup
+    const currentMap = new Map(currentData.map(item => [item.account, item]));
+    
+    // Merge new data with current, preserving order and updating existing
+    const merged = newData.map(newItem => {
+      const existing = currentMap.get(newItem.account);
+      if (existing) {
+        // Update existing item with new data, but preserve UI state
+        return { ...existing, ...newItem, lastUpdated: newItem.lastUpdated || existing.lastUpdated };
+      }
+      return newItem;
+    });
+    
+    // Add any accounts that exist in current but not in new (in case of temporary API issues)
+    currentData.forEach(currentItem => {
+      if (!newData.find(newItem => newItem.account === currentItem.account)) {
+        merged.push(currentItem);
+      }
+    });
+    
+    return merged;
+  };
+
+  // Function to load data for a specific key (with smart merging)
+  const loadDataForKey = async (k: string, isRefresh = false) => {
     if (!k) {
       setData([]);
       return;
     }
     try {
-      setLoadingUserData(true);
+      if (!isRefresh) setLoadingUserData(true);
       setUserDataError('');
       const res = await fetch(`${API_BASE}/api/data?key=${encodeURIComponent(k)}`);
       if (!res.ok) {
         setUserDataError(`Server error: ${res.status}`);
-        setData([]);
+        if (!isRefresh) setData([]);
         return;
       }
       const userData = await res.json();
       if (Array.isArray(userData) && userData.length > 0) {
-        setData(userData as DataRow[]);
+        setData(currentData => {
+          // Use smart merging for refreshes to prevent flickering
+          return isRefresh ? mergeDataSmart(userData as DataRow[], currentData) : userData as DataRow[];
+        });
         setUsingCache(false);
         setCacheTime(Date.now());
+        setLastRefresh(Date.now());
       } else {
-        setUserDataError('No data found for this key. Make sure you have run the telemetry script at least once.');
-        setData([]);
+        if (!isRefresh) {
+          setUserDataError('No data found for this key. Make sure you have run the telemetry script at least once.');
+          setData([]);
+        }
       }
     } catch (e) {
-      setUserDataError('Network error while loading data. Please check your connection and try again.');
-      setData([]);
+      if (!isRefresh) {
+        setUserDataError('Network error while loading data. Please check your connection and try again.');
+        setData([]);
+      }
     } finally {
-      setLoadingUserData(false);
+      if (!isRefresh) setLoadingUserData(false);
     }
   };
+
+  // Auto-refresh timer setup
+  React.useEffect(() => {
+    if (!autoRefresh || !userKey) {
+      if (refreshTimerRef.current) {
+        clearInterval(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
+      return;
+    }
+
+    // Set up auto-refresh every 30 seconds
+    refreshTimerRef.current = setInterval(() => {
+      if (userKey && autoRefresh) {
+        loadDataForKey(userKey, true); // isRefresh = true
+      }
+    }, 30000);
+
+    return () => {
+      if (refreshTimerRef.current) {
+        clearInterval(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
+    };
+  }, [autoRefresh, userKey]);
 
   // Auto-load user data if ?key= is present in URL (single effect)
   React.useEffect(() => {
@@ -544,6 +614,46 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
           <MoonStar className={`absolute h-[1.2rem] w-[1.2rem] transition-all ${dark ? "rotate-0 scale-100" : "rotate-90 scale-0"}`} />
           <span className="sr-only">Toggle theme</span>
         </button>
+        {/* Auto-refresh controls */}
+        <div className="flex items-center gap-2 ml-3">
+          <button
+            type="button"
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+              autoRefresh 
+                ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+            }`}
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            title={autoRefresh ? 'Auto-refresh ON (30s)' : 'Auto-refresh OFF'}
+          >
+            <div className={`w-2 h-2 rounded-full ${
+              autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+            }`} />
+            {autoRefresh ? 'Auto' : 'Manual'}
+          </button>
+          
+          {lastRefresh > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {new Date(lastRefresh).toLocaleTimeString()}
+            </span>
+          )}
+          
+          {userKey && (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 transition-colors"
+              onClick={() => loadDataForKey(userKey, true)}
+              disabled={loadingUserData}
+              title="Refresh data now"
+            >
+              <svg className={`w-3 h-3 ${loadingUserData ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
+          )}
+        </div>
+        
         {usingCache && (
           <span className="ml-3 text-xs text-amber-600">Showing cached data{cacheTime ? ` (${new Date(cacheTime).toLocaleTimeString()})` : ''}</span>
         )}
