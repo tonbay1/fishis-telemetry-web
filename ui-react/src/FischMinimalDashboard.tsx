@@ -56,7 +56,16 @@ type DataRow = Row & Partial<PlayerDetail> & { playerName?: string; materials?: 
 
 export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[] }) {
   // API base resolves from environment (set VITE_API_BASE_URL in Vercel)
-  const API_BASE: string = (import.meta as any)?.env?.VITE_API_BASE_URL || '';
+  // Allow override from URL parameter &api= for testing
+  const getApiBase = () => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const apiParam = params.get('api');
+      if (apiParam) return apiParam;
+    } catch {}
+    return (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://extensions-sensitive-shake-pros.trycloudflare.com';
+  };
+  const API_BASE: string = getApiBase();
   const [query, setQuery] = React.useState("");
   const [status, setStatus] = React.useState<"all" | "online" | "offline">("all");
   const [page, setPage] = React.useState(1);
