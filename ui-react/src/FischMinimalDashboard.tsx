@@ -32,11 +32,7 @@ export type Row = {
   online: boolean;
 };
 
-const demoRows: Row[] = [
-  { account: "ZentGen-01", level: 12, enchant: 3, coins: 15400, rod: "Steel Rod", items: 5, online: true },
-  { account: "SHOP888-A", level: 9, enchant: 1, coins: 7200, rod: "Wood Rod", items: 2, online: false },
-  { account: "rexzy-2", level: 17, enchant: 4, coins: 30210, rod: "Crystal Rod", items: 9, online: true },
-];
+
 
 // Helper formatters
 const nf = new Intl.NumberFormat();
@@ -60,7 +56,7 @@ type DataRow = Row & Partial<PlayerDetail> & {
   timestamp?: string;
 };
 
-export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[] }) {
+export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
   // API base resolves from environment (set VITE_API_BASE_URL in Vercel)
   // Allow override from URL parameter &api= for testing
   const getApiBase = () => {
@@ -69,7 +65,7 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
       const apiParam = params.get('api');
       if (apiParam) return apiParam;
     } catch {}
-    return (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://involvement-friday-bangkok-jewelry.trycloudflare.com';
+    return (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://kenny-bicycle-queensland-surname.trycloudflare.com';
   };
   const API_BASE: string = getApiBase();
   const [query, setQuery] = React.useState("");
