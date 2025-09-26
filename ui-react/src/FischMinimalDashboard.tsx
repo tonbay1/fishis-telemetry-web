@@ -103,6 +103,12 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
   const [selectedForDelete, setSelectedForDelete] = React.useState<string[]>([]);
   const [deleting, setDeleting] = React.useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
+  
+  // Google Sheets Export functionality
+  const [selectedForExport, setSelectedForExport] = React.useState<string[]>([]);
+  const [exporting, setExporting] = React.useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = React.useState(false);
+  const [sheetUrl, setSheetUrl] = React.useState<string>('');
 
   // Smart data merging to prevent flickering
   const mergeDataSmart = (newData: DataRow[], currentData: DataRow[]) => {
@@ -391,6 +397,63 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
   
   const clearDeleteSelection = () => {
     setSelectedForDelete([]);
+  };
+  
+  // Google Sheets Export functionality
+  const exportToGoogleSheets = async () => {
+    if (!userKey.trim() || selectedForExport.length === 0 || !sheetUrl.trim()) return;
+    
+    try {
+      setExporting(true);
+      
+      const res = await fetch(`${API_BASE}/api/export-sheets`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          key: userKey.trim(),
+          accounts: selectedForExport,
+          sheetUrl: sheetUrl.trim()
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Unknown error' }));
+        alert(`Failed to export to Google Sheets: ${errorData.message}`);
+        return;
+      }
+      
+      const result = await res.json();
+      setExportDialogOpen(false);
+      setSelectedForExport([]);
+      setSheetUrl('');
+      
+      alert(`Successfully exported ${result.exportedCount} account(s) to Google Sheets!`);
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Network error while exporting to Google Sheets.');
+    } finally {
+      setExporting(false);
+    }
+  };
+  
+  const toggleAccountForExport = (account: string) => {
+    setSelectedForExport(prev => 
+      prev.includes(account) 
+        ? prev.filter(acc => acc !== account)
+        : [...prev, account]
+    );
+  };
+  
+  const selectAllForExport = () => {
+    const allAccounts = data.map(item => item.account || item.playerName || '').filter(Boolean);
+    setSelectedForExport(allAccounts);
+  };
+  
+  const clearExportSelection = () => {
+    setSelectedForExport([]);
   };
 
   const applyTheme = (next: "light" | "dark") => {
@@ -803,6 +866,49 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
               </button>
             </div>
           )}
+          
+          {/* Google Sheets Export Controls */}
+          {userKey && data.length > 0 && (
+            <div className="flex items-center gap-1 ml-2 pl-2 border-l">
+              {selectedForExport.length > 0 && (
+                <>
+                  <span className="text-xs text-muted-foreground">
+                    {selectedForExport.length} for export
+                  </span>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 transition-colors"
+                    onClick={() => setExportDialogOpen(true)}
+                    disabled={exporting}
+                    title="Export selected accounts to Google Sheets"
+                  >
+                    <FileSpreadsheet className="w-3 h-3" />
+                    Export ({selectedForExport.length})
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 transition-colors"
+                    onClick={clearExportSelection}
+                    title="Clear export selection"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Clear
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 transition-colors"
+                onClick={selectAllForExport}
+                title="Select all accounts for export"
+              >
+                <FileSpreadsheet className="w-3 h-3" />
+                Select for Export
+              </button>
+            </div>
+          )}
         </div>
         
         {usingCache && (
@@ -864,7 +970,20 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
             </label>
           </div>
           <div className="flex flex-row gap-2">
-            <Button variant="secondary" className="ghost-pill"><FileSpreadsheet className="mr-2 h-4 w-4"/>Google Sheets</Button>
+            <Button 
+              variant="secondary" 
+              className="ghost-pill" 
+              onClick={() => {
+                if (selectedForExport.length > 0) {
+                  setExportDialogOpen(true);
+                } else {
+                  alert('Please select accounts for export using the green checkboxes in the table.');
+                }
+              }}
+              disabled={!userKey || data.length === 0}
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4"/>Google Sheets
+            </Button>
             <Button variant="secondary" className="ghost-pill" onClick={()=>{ setScriptOpen(true); setCreatedKey(null); }}><Key className="mr-2 h-4 w-4"/>Enter Key</Button>
             <Button variant="secondary" className="ghost-pill"><Cookie className="mr-2 h-4 w-4"/>Cookies</Button>
           </div>
@@ -908,6 +1027,11 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
                       <span className="text-xs text-red-600 font-medium">Delete</span>
                     </TableHead>
                   )}
+                  {userKey && (
+                    <TableHead className="w-10">
+                      <span className="text-xs text-green-600 font-medium">Export</span>
+                    </TableHead>
+                  )}
                   <TableHead>Account</TableHead>
                   <TableHead>
                     <span className="th-wrap"><CoinsIcon className="th-icon"/> Money</span>
@@ -926,7 +1050,7 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
               <TableBody>
                 {pageRows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={userKey ? 11 : 10} className="text-center py-10 text-sm text-muted-foreground">No results.</TableCell>
+                    <TableCell colSpan={userKey ? 12 : 10} className="text-center py-10 text-sm text-muted-foreground">No results.</TableCell>
                   </TableRow>
                 ) : (
                   pageRows.map((r, i) => (
@@ -963,6 +1087,27 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
                               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
+                            )}
+                          </button>
+                        </TableCell>
+                      )}
+                      {userKey && (
+                        <TableCell className="w-10">
+                          <button
+                            type="button"
+                            aria-label="Mark for export"
+                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                              selectedForExport.includes(r.account || r.playerName || '')
+                                ? 'bg-green-500 border-green-500 text-white'
+                                : 'border-green-300 hover:border-green-500 hover:bg-green-50 dark:border-green-600 dark:hover:bg-green-900'
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleAccountForExport(r.account || r.playerName || '');
+                            }}
+                          >
+                            {selectedForExport.includes(r.account || r.playerName || '') && (
+                              <FileSpreadsheet className="w-3 h-3" />
                             )}
                           </button>
                         </TableCell>
@@ -1146,6 +1291,90 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                       Delete {selectedForDelete.length} Account{selectedForDelete.length > 1 ? 's' : ''}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Google Sheets Export Dialog */}
+      {exportDialogOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background border rounded-lg shadow-lg max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                  <FileSpreadsheet className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Export to Google Sheets</h3>
+                  <p className="text-sm text-muted-foreground">Export selected accounts data</p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-sm text-foreground mb-3">
+                  Export the following {selectedForExport.length} account(s) to Google Sheets:
+                </p>
+                <div className="max-h-32 overflow-y-auto bg-muted rounded p-3 mb-4">
+                  {selectedForExport.map((account, index) => (
+                    <div key={account} className="text-sm font-mono text-foreground">
+                      {index + 1}. {account}
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Google Sheets API URL:
+                  </label>
+                  <input
+                    type="url"
+                    value={sheetUrl}
+                    onChange={(e) => setSheetUrl(e.target.value)}
+                    placeholder="https://api.sheetbest.com/sheets/YOUR-SHEET-ID"
+                    className="w-full border border-input bg-background rounded px-3 py-2 text-sm"
+                    disabled={exporting}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Enter your Google Sheets API endpoint URL (e.g., SheetBest, Google Apps Script, etc.)
+                  </p>
+                </div>
+                
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  📊 Data will include: Account, Money, Level, Rod, Location, Online Status, Rods, Baits
+                </p>
+              </div>
+              
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 text-sm"
+                  onClick={() => setExportDialogOpen(false)}
+                  disabled={exporting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-md bg-green-600 text-white hover:bg-green-700 h-9 px-4 text-sm"
+                  onClick={exportToGoogleSheets}
+                  disabled={exporting || !sheetUrl.trim()}
+                >
+                  {exporting ? (
+                    <>
+                      <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <FileSpreadsheet className="w-4 h-4 mr-2" />
+                      Export {selectedForExport.length} Account{selectedForExport.length > 1 ? 's' : ''}
                     </>
                   )}
                 </button>
