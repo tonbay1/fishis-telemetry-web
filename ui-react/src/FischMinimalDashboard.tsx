@@ -94,42 +94,63 @@ export default function FischMinimalDashboard({ rows = demoRows }: { rows?: Row[
   const [userDataError, setUserDataError] = React.useState<string>('');
   const autoLoadAttempted = React.useRef(false);
 
-  // Auto-load user data if ?key= is present in URL
+  // Monitor URL changes for key parameter
   React.useEffect(() => {
-    if (autoLoadAttempted.current) return;
-    autoLoadAttempted.current = true;
     try {
       const params = new URLSearchParams(window.location.search);
       const k = (params.get('key') || '').trim();
-      if (!k) return;
-      setUserKey(k);
-      setRememberKey(true);
-      try { localStorage.setItem(LS_USER_KEY, k); } catch {}
-      (async () => {
-        try {
-          setLoadingUserData(true);
-          setUserDataError('');
-          const res = await fetch(`${API_BASE}/api/data?key=${encodeURIComponent(k)}`);
-          if (!res.ok) {
-            setUserDataError(`Server error: ${res.status}`);
-            return;
-          }
-          const userData = await res.json();
-          if (Array.isArray(userData) && userData.length > 0) {
-            setData(userData as DataRow[]);
-            setUsingCache(false);
-            setCacheTime(Date.now());
-          } else {
-            setUserDataError('No data found for this key. Make sure you have run the telemetry script at least once.');
-          }
-        } catch (e) {
-          setUserDataError('Network error while loading data. Please check your connection and try again.');
-        } finally {
-          setLoadingUserData(false);
-        }
-      })();
+      if (k && k !== userKey) {
+        // Key changed from URL, update state only
+        setUserKey(k);
+        setRememberKey(true);
+        try { localStorage.setItem(LS_USER_KEY, k); } catch {}
+      } else if (!autoLoadAttempted.current && k) {
+        // First load from URL
+        autoLoadAttempted.current = true;
+        setUserKey(k);
+        setRememberKey(true);
+        try { localStorage.setItem(LS_USER_KEY, k); } catch {}
+      }
     } catch {}
-  }, [API_BASE]);
+  }, []);
+
+  // Load data when userKey changes (separate effect to prevent flickering)
+  React.useEffect(() => {
+    const loadDataForKey = async (k: string) => {
+      if (!k) {
+        setData([]);
+        return;
+      }
+      try {
+        setLoadingUserData(true);
+        setUserDataError('');
+        const res = await fetch(`${API_BASE}/api/data?key=${encodeURIComponent(k)}`);
+        if (!res.ok) {
+          setUserDataError(`Server error: ${res.status}`);
+          setData([]);
+          return;
+        }
+        const userData = await res.json();
+        if (Array.isArray(userData) && userData.length > 0) {
+          setData(userData as DataRow[]);
+          setUsingCache(false);
+          setCacheTime(Date.now());
+        } else {
+          setUserDataError('No data found for this key. Make sure you have run the telemetry script at least once.');
+          setData([]);
+        }
+      } catch (e) {
+        setUserDataError('Network error while loading data. Please check your connection and try again.');
+        setData([]);
+      } finally {
+        setLoadingUserData(false);
+      }
+    };
+
+    if (userKey) {
+      loadDataForKey(userKey);
+    }
+  }, [userKey, API_BASE]);
 
   // --- THEME helpers ---------------------------------------------------------
   const clearInlineThemeVars = () => {
