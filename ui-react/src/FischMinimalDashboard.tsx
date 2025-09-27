@@ -614,6 +614,15 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
     } catch {}
   }, [selectedAccount, API_BASE, authKey]);
 
+  // Auto-load saved user key on component mount
+  React.useEffect(() => {
+    if (userKey && !autoLoadAttempted.current) {
+      autoLoadAttempted.current = true;
+      console.log('Auto-loading data for saved key:', userKey);
+      loadDataForKey(userKey);
+    }
+  }, [userKey]); // Only run when userKey changes
+  
   // Removed conflicting auto-refresh - now handled by loadDataForKey for user-specific data
   // fetchData is only used for admin/general data viewing
 
