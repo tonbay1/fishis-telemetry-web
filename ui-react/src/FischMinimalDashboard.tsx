@@ -65,7 +65,7 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
       const apiParam = params.get('api');
       if (apiParam) return apiParam;
     } catch {}
-    return (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://twist-curtis-passport-packaging.trycloudflare.com';
+    return (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://charged-recently-laboratories-shipment.trycloudflare.com';
   };
   const API_BASE: string = getApiBase();
   const [query, setQuery] = React.useState("");
@@ -141,23 +141,39 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
   // Function to load data for a specific key (with smart merging)
   const loadDataForKey = async (k: string, isRefresh = false) => {
     if (!k) {
+      console.log('❌ loadDataForKey: No key provided');
       setData([]);
       return;
     }
+    
+    console.log(`📡 Loading data for key: ${k.substring(0, 8)}... (isRefresh: ${isRefresh})`);
+    
     try {
       if (!isRefresh) setLoadingUserData(true);
       setUserDataError('');
-      const res = await fetch(`${API_BASE}/api/data?key=${encodeURIComponent(k)}`, {
+      
+      const url = `${API_BASE}/api/data?key=${encodeURIComponent(k)}`;
+      console.log('🌐 Fetching from:', url);
+      
+      const res = await fetch(url, {
         headers: {
           'ngrok-skip-browser-warning': 'true'
         }
       });
+      
+      console.log('📊 Response status:', res.status);
+      
       if (!res.ok) {
-        setUserDataError(`Server error: ${res.status}`);
+        const errorMsg = `Server error: ${res.status}`;
+        console.error('❌ API Error:', errorMsg);
+        setUserDataError(errorMsg);
         if (!isRefresh) setData([]);
         return;
       }
+      
       const userData = await res.json();
+      console.log('📦 Received data:', userData?.length || 0, 'items');
+      
       if (Array.isArray(userData) && userData.length > 0) {
         setData(currentData => {
           // Use smart merging for refreshes to prevent flickering
@@ -166,13 +182,17 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
         setUsingCache(false);
         setCacheTime(Date.now());
         setLastRefresh(Date.now());
+        console.log('✅ Data loaded successfully');
       } else {
         if (!isRefresh) {
-          setUserDataError('No data found for this key. Make sure you have run the telemetry script at least once.');
+          const noDataMsg = 'No data found for this key. Make sure you have run the telemetry script at least once.';
+          console.warn('⚠️ No data:', noDataMsg);
+          setUserDataError(noDataMsg);
           setData([]);
         }
       }
     } catch (e) {
+      console.error('❌ Network error:', e);
       if (!isRefresh) {
         setUserDataError('Network error while loading data. Please check your connection and try again.');
         setData([]);
@@ -213,13 +233,21 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
     if (autoLoadAttempted.current) return;
     autoLoadAttempted.current = true;
     
+    console.log('🔄 Auto-load attempt started');
+    
     try {
       const params = new URLSearchParams(window.location.search);
       const k = (params.get('key') || '').trim();
       if (k) {
+        console.log('🔑 Found key in URL:', k.substring(0, 8) + '...');
         setUserKey(k);
         setRememberKey(true);
-        try { localStorage.setItem(LS_USER_KEY, k); } catch {}
+        try { 
+          localStorage.setItem(LS_USER_KEY, k);
+          console.log('💾 Saved key to localStorage');
+        } catch (e) {
+          console.warn('⚠️ Failed to save key to localStorage:', e);
+        }
         // Load data immediately
         loadDataForKey(k);
       } else {
@@ -227,13 +255,20 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
         try {
           const savedKey = localStorage.getItem(LS_USER_KEY);
           if (savedKey) {
+            console.log('🔑 Found saved key in localStorage:', savedKey.substring(0, 8) + '...');
             setUserKey(savedKey);
             setRememberKey(true);
             loadDataForKey(savedKey);
+          } else {
+            console.log('❌ No saved key found in localStorage');
           }
-        } catch {}
+        } catch (e) {
+          console.warn('⚠️ Failed to load key from localStorage:', e);
+        }
       }
-    } catch {}
+    } catch (e) {
+      console.error('❌ Auto-load failed:', e);
+    }
   }, []); // Remove API_BASE dependency to prevent re-runs
 
   // --- THEME helpers ---------------------------------------------------------
