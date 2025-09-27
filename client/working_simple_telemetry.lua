@@ -13,8 +13,8 @@ local CFG = (GEN and (GEN.Fishis_Telemetry or GEN.Telemetry_Settings or GEN.SHOP
 local TELEMETRY_URLS = {
     "http://127.0.0.1:3010/telemetry",
     "http://localhost:3010/telemetry",
+    "https://twist-curtis-passport-packaging.trycloudflare.com/telemetry",
     "http://103.58.149.243:3010/telemetry",
-    "https://rate-whatever-remix-neutral.trycloudflare.com/telemetry",
     -- If localhost is blocked, set your LAN IP below, e.g. "http://192.168.1.10:3010/telemetry"
 }
 do
@@ -1050,10 +1050,14 @@ local function scanAndSend()
         timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"),
         lastUpdated = os.date("!%Y-%m-%dT%H:%M:%SZ")
     }
+    -- Add machine name to telemetry
+    telemetry.machine = CFG.machineName or CFG.machine or CFG.PC or CFG.pc or "Unknown-PC"
+    
     -- Add optional attributes from CFG (e.g., key/PC labels)
     local attrs = {}
     if CFG.key then attrs.key = tostring(CFG.key) end
     if CFG.PC or CFG.pc then attrs.pc = tostring(CFG.PC or CFG.pc) end
+    if CFG.machineName or CFG.machine then attrs.machine = tostring(CFG.machineName or CFG.machine) end
     if next(attrs) ~= nil then telemetry.attributes = attrs end
 
     -- Omit fields that are empty/unknown to avoid overwriting good data on the server
