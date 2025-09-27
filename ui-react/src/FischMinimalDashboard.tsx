@@ -65,7 +65,7 @@ export default function FischMinimalDashboard({ rows = [] }: { rows?: Row[] }) {
       const apiParam = params.get('api');
       if (apiParam) return apiParam;
     } catch {}
-    return (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://fishis.duckdns.org:3001';
+    return (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://dalila-narratable-samatha.ngrok-free.dev';
   };
   const API_BASE: string = getApiBase();
   const [query, setQuery] = React.useState("");
